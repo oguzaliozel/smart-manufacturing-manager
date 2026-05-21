@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+
+data/app.db
+atolye.db
+
+outputs/pdf/
+outputs/excel/
+
+.vscode/
+.idea/
+
+*.log
