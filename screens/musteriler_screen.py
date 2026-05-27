@@ -7,6 +7,7 @@ class MusterilerScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        self._needs_refresh = False
         
         # Seçili olan müşterinin ID'sini tutar (düzenleme/silme için)
         self.secili_musteri_id = None
@@ -245,3 +246,14 @@ class MusterilerScreen(ctk.CTkFrame):
         
         self.form_temizle()
         self.load_data()
+
+    def apply_theme(self):
+        """Tema değişiminde ana renkleri günceller."""
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.left_card.configure(fg_color=Renkler.CARD_BG)
+            self.right_card.configure(fg_color=Renkler.CARD_BG)
+            self.lbl_form_title.configure(text_color=Renkler.TEXT_DARK)
+        except Exception:
+            pass
+        self._needs_refresh = True

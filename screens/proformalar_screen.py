@@ -11,6 +11,7 @@ class ProformalarScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        self._needs_refresh = False
         
         self.secili_proforma_id = None
         self.secili_proforma = None
@@ -285,3 +286,13 @@ class ProformalarScreen(ctk.CTkFrame):
                 os.startfile(excel_path)
         except Exception as e:
             messagebox.showerror("Hata", f"Excel açılamadı:\n{e}")
+
+    def apply_theme(self):
+        """Tema değişiminde ana renkleri günceller."""
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.left_card.configure(fg_color=Renkler.CARD_BG)
+            self.right_card.configure(fg_color=Renkler.CARD_BG)
+        except Exception:
+            pass
+        self._needs_refresh = True

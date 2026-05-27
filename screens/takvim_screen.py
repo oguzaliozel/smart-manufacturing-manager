@@ -659,7 +659,7 @@ class TakvimScreen(ctk.CTkFrame):
         if hasattr(self.master.master, 'screens'):
             screens = self.master.master.screens
             if "dashboard" in screens and hasattr(screens["dashboard"], "load_data"):
-                screens["dashboard"].load_data()
+                screens["dashboard"]._needs_refresh = True
 
     def delete_manual_task(self, task_id):
         if not messagebox.askyesno("Onay", "Bu görevi silmek istediğinize emin misiniz?"):
@@ -676,4 +676,12 @@ class TakvimScreen(ctk.CTkFrame):
         if hasattr(self.master.master, 'screens'):
             screens = self.master.master.screens
             if "dashboard" in screens and hasattr(screens["dashboard"], "load_data"):
-                screens["dashboard"].load_data()
+                screens["dashboard"]._needs_refresh = True
+
+    def apply_theme(self):
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.calendar_card.configure(fg_color=Renkler.CARD_BG)
+        except Exception:
+            pass
+        self._needs_refresh = True

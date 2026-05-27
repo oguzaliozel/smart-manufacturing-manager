@@ -2,6 +2,7 @@ import customtkinter as ctk
 import database
 from screens.login_screen import LoginScreen
 from dil import t
+from tema import ThemeManager
 
 class AtolyeApp(ctk.CTk):
     def __init__(self):
@@ -12,8 +13,8 @@ class AtolyeApp(ctk.CTk):
         self.geometry("1200x800")
         self.minsize(1000, 700)
         
-        # CustomTkinter genel tema ayarı
-        ctk.set_appearance_mode("Light")
+        # Başlangıç teması (giriş yapılana kadar açık)
+        ThemeManager.apply("Açık")
         
         # Veritabanını hazırla ve tabloları oluştur
         self.db = database.Database()
@@ -36,6 +37,12 @@ class AtolyeApp(ctk.CTk):
     def handle_login(self, user):
         self.current_user = user
         
+        # Kullanıcının kayıtlı temasını yükle
+        saved_theme = user.get("tema", "Açık") or "Açık"
+        if saved_theme not in ("Açık", "Koyu"):
+            saved_theme = "Açık"
+        ThemeManager.apply(saved_theme)
+        
         # Giriş başarılıysa giriş ekranını temizle
         if self.current_screen:
             self.current_screen.destroy()
@@ -47,6 +54,7 @@ class AtolyeApp(ctk.CTk):
         
     def logout(self):
         self.current_user = None
+        ThemeManager.apply("Açık")
         self.show_login_screen()
 
 if __name__ == "__main__":

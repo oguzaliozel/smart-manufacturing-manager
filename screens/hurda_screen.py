@@ -7,6 +7,7 @@ class HurdaScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        self._needs_refresh = False
         
         self.secili_hurda_id = None
         self.secili_hurda_veri = None
@@ -347,3 +348,12 @@ class HurdaScreen(ctk.CTkFrame):
         
         self.islem_modu_sifirla()
         self.load_data()
+
+    def apply_theme(self):
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.left_card.configure(fg_color=Renkler.CARD_BG)
+            self.right_card.configure(fg_color=Renkler.CARD_BG)
+        except Exception:
+            pass
+        self._needs_refresh = True

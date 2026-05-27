@@ -87,18 +87,43 @@ class TekliflerScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        self._needs_refresh = False
         
-        # Grid kolon ağırlıkları (Her kolonun genişlik yüzdesi)
+        # Grid kolon oranları (Kullanıcı talebine göre)
         self.col_weights = {
-            0: 12, # Teklif No
-            1: 18, # Müşteri
-            2: 12, # Durum
-            3: 11, # Net Maliyet
-            4: 10, # Kar
-            5: 12, # Toplam Tutar
-            6: 10, # Tarih
-            7: 15  # İşlemler
+            0: 150, # Teklif No
+            1: 220, # Müşteri
+            2: 130, # Durum
+            3: 150, # Net Maliyet
+            4: 140, # Kar Tutarı
+            5: 160, # Toplam Tutar
+            6: 120, # Tarih
+            7: 190  # İşlemler
         }
+        
+        # Güvenli minimum genişlikler (Pencere küçüldüğünde taşmayı önlemek için)
+        self.col_minsizes = {
+            0: 100,
+            1: 150,
+            2: 90,
+            3: 100,
+            4: 90,
+            5: 110,
+            6: 80,
+            7: 130
+        }
+        
+        # Kolon hizalama ve padding kuralları: (Hizalama, padx)
+        self.column_configs = [
+            ("w", (15, 5)), # Teklif No (Sola hizalı)
+            ("w", (5, 5)),  # Müşteri (Sola hizalı)
+            ("", (5, 5)),   # Durum (Ortalı)
+            ("e", (5, 15)), # Net Maliyet (Sağa hizalı)
+            ("e", (5, 15)), # Kar Tutarı (Sağa hizalı)
+            ("e", (5, 15)), # Toplam Tutar (Sağa hizalı)
+            ("", (5, 5)),   # Tarih (Ortalı)
+            ("", (5, 5))    # İşlemler (Ortalı)
+        ]
         
         self.create_widgets()
         self.load_data()
@@ -126,29 +151,33 @@ class TekliflerScreen(ctk.CTkFrame):
         self.table_frame.pack(fill="both", expand=True, padx=30, pady=(0, 30))
         
         # Tablo Başlıkları
+        # Dikey scrollbar alanını (16px) dengelemek için sağ padding 31px yapıldı
         self.table_header = ctk.CTkFrame(self.table_frame, fg_color="transparent")
-        self.table_header.pack(fill="x", padx=20, pady=12)
+        self.table_header.pack(fill="x", padx=(15, 31), pady=12)
         
         headers = [
-            ("Teklif No", "w"),
-            ("Müşteri", "w"),
-            ("Durum", "center"),
-            ("Net Maliyet", "e"),
-            ("Kar Tutarı", "e"),
-            ("Toplam Tutar", "e"),
-            ("Tarih", "center"),
-            ("İşlemler", "e")
+            "Teklif No",
+            "Müşteri",
+            "Durum",
+            "Net Maliyet",
+            "Kar Tutarı",
+            "Toplam Tutar",
+            "Tarih",
+            "İşlemler"
         ]
         
-        for i, (text, align) in enumerate(headers):
+        for i, text in enumerate(headers):
+            align, padx = self.column_configs[i]
             lbl = ctk.CTkLabel(self.table_header, text=text, font=Fontlar.BODY_BOLD, text_color=Renkler.TEXT_GRAY)
+            lbl.grid(row=0, column=i, sticky=align, padx=padx)
             
-            sticky = "w"
-            if align == "e": sticky = "e"
-            elif align == "center": sticky = ""
-            
-            lbl.grid(row=0, column=i, sticky=sticky, padx=5)
-            self.table_header.grid_columnconfigure(i, weight=self.col_weights[i])
+            # Tüm kolonlar aynı uniform grupta orantılı ölçeklenir
+            self.table_header.grid_columnconfigure(
+                i, 
+                weight=self.col_weights[i], 
+                uniform="col", 
+                minsize=self.col_minsizes[i]
+            )
 
         # Çizgi
         ayrac = ctk.CTkFrame(self.table_frame, fg_color=Renkler.BORDER, height=1)
@@ -190,13 +219,21 @@ class TekliflerScreen(ctk.CTkFrame):
             tutar = f"{t_satir['son_tutar'] or 0.0:,.2f} ₺"
             tarih = t_satir['olusturma_tarihi'] or "-"
             
-            # Satır Çerçevesi
-            row = ctk.CTkFrame(self.list_frame, fg_color="white", corner_radius=6)
-            row.pack(fill="x", pady=2, padx=5)
+            # Satır Çerçevesi (Sabit 64px yükseklik)
+            row = ctk.CTkFrame(self.list_frame, fg_color="white", corner_radius=6, height=64)
+            row.pack(fill="x", pady=3, padx=5)
+            row.grid_propagate(False)
+            row.pack_propagate(False)
+            row.grid_rowconfigure(0, weight=1)
             
-            # Grid ağırlıklarını satıra da ata
+            # Grid ağırlıklarını ve uniform gruplarını satıra da ata
             for col_idx, weight in self.col_weights.items():
-                row.grid_columnconfigure(col_idx, weight=weight)
+                row.grid_columnconfigure(
+                    col_idx, 
+                    weight=weight, 
+                    uniform="col", 
+                    minsize=self.col_minsizes[col_idx]
+                )
                 
             # Hover efekti bind helper
             def make_hover_effect(widget_item, row_frame=row):
@@ -206,51 +243,56 @@ class TekliflerScreen(ctk.CTkFrame):
             row.bind("<Enter>", lambda e, r=row: r.configure(fg_color="#F1F5F9"))
             row.bind("<Leave>", lambda e, r=row: r.configure(fg_color="white"))
 
+            # Uzun müşteri isimlerini kırp
+            if len(musteri) > 22:
+                musteri = musteri[:19] + "..."
+
             # 0. Teklif No
             lbl_no = ctk.CTkLabel(row, text=t_no, font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_DARK)
-            lbl_no.grid(row=0, column=0, sticky="w", padx=10, pady=8)
+            lbl_no.grid(row=0, column=0, sticky=self.column_configs[0][0], padx=self.column_configs[0][1])
             make_hover_effect(lbl_no)
             
             # 1. Müşteri
             lbl_cust = ctk.CTkLabel(row, text=musteri, font=Fontlar.SMALL, text_color=Renkler.TEXT_DARK)
-            lbl_cust.grid(row=0, column=1, sticky="w", padx=10, pady=8)
+            lbl_cust.grid(row=0, column=1, sticky=self.column_configs[1][0], padx=self.column_configs[1][1])
             make_hover_effect(lbl_cust)
             
             # 2. Durum (Badge / Rozet)
             badge = self.create_status_badge(row, durum)
-            badge.grid(row=0, column=2, sticky="", pady=8)
+            badge.grid(row=0, column=2, sticky=self.column_configs[2][0], padx=self.column_configs[2][1])
             make_hover_effect(badge)
             for child in badge.winfo_children():
                 make_hover_effect(child)
             
             # 3. Net Maliyet
             lbl_mal = ctk.CTkLabel(row, text=maliyet, font=Fontlar.SMALL, text_color=Renkler.TEXT_DARK)
-            lbl_mal.grid(row=0, column=3, sticky="e", padx=10, pady=8)
+            lbl_mal.grid(row=0, column=3, sticky=self.column_configs[3][0], padx=self.column_configs[3][1])
             make_hover_effect(lbl_mal)
             
             # 4. Kar Tutarı
             lbl_kar = ctk.CTkLabel(row, text=kar, font=Fontlar.SMALL, text_color=Renkler.TEXT_GRAY)
-            lbl_kar.grid(row=0, column=4, sticky="e", padx=10, pady=8)
+            lbl_kar.grid(row=0, column=4, sticky=self.column_configs[4][0], padx=self.column_configs[4][1])
             make_hover_effect(lbl_kar)
             
             # 5. Toplam Tutar
             lbl_tot = ctk.CTkLabel(row, text=tutar, font=ctk.CTkFont(family="Inter", size=13, weight="bold"), text_color=Renkler.PRIMARY)
-            lbl_tot.grid(row=0, column=5, sticky="e", padx=10, pady=8)
+            lbl_tot.grid(row=0, column=5, sticky=self.column_configs[5][0], padx=self.column_configs[5][1])
             make_hover_effect(lbl_tot)
             
-            # 6. Tarih
-            tarih_metin = f"Oluşturma: {tarih}"
+            # 6. Tarih (Tek satır, detaylar tooltip'te)
+            lbl_date = ctk.CTkLabel(row, text=tarih, font=Fontlar.SMALL, text_color=Renkler.TEXT_DARK)
+            lbl_date.grid(row=0, column=6, sticky=self.column_configs[6][0], padx=self.column_configs[6][1])
+            make_hover_effect(lbl_date)
+            
+            tooltip_text = f"Oluşturma Tarihi: {tarih}"
             if t_satir['teslim_tarihi']:
                 kalan = hesapla_kalan_sure(t_satir['teslim_tarihi'])
-                tarih_metin += f"\nTeslimat: {t_satir['teslim_tarihi']}\n({kalan})"
-            
-            lbl_date = ctk.CTkLabel(row, text=tarih_metin, font=ctk.CTkFont(family="Inter", size=11), text_color=Renkler.TEXT_GRAY, justify="center")
-            lbl_date.grid(row=0, column=6, sticky="", pady=8)
-            make_hover_effect(lbl_date)
+                tooltip_text += f"\nTeslimat Tarihi: {t_satir['teslim_tarihi']} ({kalan})"
+            ToolTip(lbl_date, tooltip_text)
             
             # 7. İşlemler Alanı (Kompakt ikon butonları)
             actions_frame = ctk.CTkFrame(row, fg_color="transparent")
-            actions_frame.grid(row=0, column=7, sticky="e", padx=10, pady=8)
+            actions_frame.grid(row=0, column=7, sticky=self.column_configs[7][0], padx=self.column_configs[7][1])
             make_hover_effect(actions_frame)
             
             self.build_action_buttons(actions_frame, t_id, durum)
@@ -276,30 +318,65 @@ class TekliflerScreen(ctk.CTkFrame):
         return badge_frame
 
     def build_action_buttons(self, parent, t_id, status):
-        # Ortak buton stilleri
-        btn_style = {"width": 26, "height": 26, "corner_radius": 13, "font": ("Inter", 13)}
-        
-        # Duruma göre yüklenecek buton haritası
+        # Duruma göre yüklenecek buton haritası: (İkon, Metin, Arka Plan, Hover, Yazı Rengi, Eylem, Tooltip)
+        buttons = []
         if status == "Beklemede":
-            # Görüntüle, Düzenle, Onayla, Reddet, İptal
-            self.create_icon_btn(parent, "👁", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele", **btn_style)
-            self.create_icon_btn(parent, "✏", "#DBEAFE", "#BFDBFE", "#2563EB", lambda: self.duzenle_teklif(t_id), "Teklifi Düzenle", **btn_style)
-            self.create_icon_btn(parent, "✓", "#D1FAE5", "#A7F3D0", "#059669", lambda: self.guncelle_durum(t_id, "Onaylandı"), "Teklifi Onayla", **btn_style)
-            self.create_icon_btn(parent, "✕", "#FEE2E2", "#FCA5A5", "#DC2626", lambda: self.guncelle_durum(t_id, "Reddedildi"), "Teklifi Reddet", **btn_style)
-            self.create_icon_btn(parent, "⏸", "#F1F5F9", "#E2E8F0", "#64748B", lambda: self.guncelle_durum(t_id, "İptal"), "Teklifi İptal Et", **btn_style)
+            buttons = [
+                ("👁", "İncele", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele"),
+                ("✏", "Düzenle", "#DBEAFE", "#BFDBFE", "#2563EB", lambda: self.duzenle_teklif(t_id), "Teklifi Düzenle"),
+                ("✓", "Onayla", "#D1FAE5", "#A7F3D0", "#059669", lambda: self.guncelle_durum(t_id, "Onaylandı"), "Teklifi Onayla"),
+                ("✕", "Reddet", "#FEE2E2", "#FCA5A5", "#DC2626", lambda: self.guncelle_durum(t_id, "Reddedildi"), "Teklifi Reddet"),
+                ("⏸", "İptal", "#F1F5F9", "#E2E8F0", "#64748B", lambda: self.guncelle_durum(t_id, "İptal"), "Teklifi İptal Et")
+            ]
         elif status == "Onaylandı":
-            # Görüntüle, PDF, İptal
-            self.create_icon_btn(parent, "👁", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele", **btn_style)
-            self.create_icon_btn(parent, "📄", "#FCE7F3", "#FBCFE8", "#DB2777", lambda: self.pdf_indir(t_id), "PDF Olarak İndir", **btn_style)
-            self.create_icon_btn(parent, "⏸", "#F1F5F9", "#E2E8F0", "#64748B", lambda: self.guncelle_durum(t_id, "İptal"), "Teklifi İptal Et", **btn_style)
+            buttons = [
+                ("👁", "İncele", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele"),
+                ("📄", "PDF", "#FCE7F3", "#FBCFE8", "#DB2777", lambda: self.pdf_indir(t_id), "PDF Olarak İndir"),
+                ("⏸", "İptal", "#F1F5F9", "#E2E8F0", "#64748B", lambda: self.guncelle_durum(t_id, "İptal"), "Teklifi İptal Et")
+            ]
         elif status == "Reddedildi":
-            # Görüntüle, Düzenle, İptal
-            self.create_icon_btn(parent, "👁", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele", **btn_style)
-            self.create_icon_btn(parent, "✏", "#DBEAFE", "#BFDBFE", "#2563EB", lambda: self.duzenle_teklif(t_id), "Teklifi Düzenle", **btn_style)
-            self.create_icon_btn(parent, "⏸", "#F1F5F9", "#E2E8F0", "#64748B", lambda: self.guncelle_durum(t_id, "İptal"), "Teklifi İptal Et", **btn_style)
+            buttons = [
+                ("👁", "İncele", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele"),
+                ("✏", "Düzenle", "#DBEAFE", "#BFDBFE", "#2563EB", lambda: self.duzenle_teklif(t_id), "Teklifi Düzenle"),
+                ("⏸", "İptal", "#F1F5F9", "#E2E8F0", "#64748B", lambda: self.guncelle_durum(t_id, "İptal"), "Teklifi İptal Et")
+            ]
         else: # İptal
-            # Sadece Görüntüle
-            self.create_icon_btn(parent, "👁", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele", **btn_style)
+            buttons = [
+                ("👁", "İncele", "#E2E8F0", "#CBD5E1", "#475569", lambda: self.goruntule_teklif(t_id), "Teklifi İncele")
+            ]
+
+        # Eğer 2'den fazla buton varsa sadece ikon göster
+        show_only_icon = len(buttons) > 2
+        
+        for icon, text, bg, hover, fg, cmd, tooltip in buttons:
+            if show_only_icon:
+                self.create_icon_btn(
+                    parent, 
+                    icon, 
+                    bg, 
+                    hover, 
+                    fg, 
+                    cmd, 
+                    tooltip, 
+                    width=26, 
+                    height=26, 
+                    corner_radius=13, 
+                    font=("Inter", 13)
+                )
+            else:
+                self.create_icon_btn(
+                    parent, 
+                    f"{icon} {text}", 
+                    bg, 
+                    hover, 
+                    fg, 
+                    cmd, 
+                    tooltip, 
+                    width=85, 
+                    height=26, 
+                    corner_radius=13, 
+                    font=("Inter", 10, "bold")
+                )
 
     def create_icon_btn(self, parent, text, fg, hover, text_col, command, tooltip_text, **kwargs):
         btn = ctk.CTkButton(
@@ -320,11 +397,11 @@ class TekliflerScreen(ctk.CTkFrame):
         success = self.db.teklif_durum_guncelle(t_id, yeni_durum, self.current_user["id"])
         if success:
             self.load_data()
-            # Dashboard önbelleğini yenile
+            # Dashboard'u bir sonraki ziyarette yenile
             if hasattr(self.master.master, 'screens'):
                 screens = self.master.master.screens
-                if "dashboard" in screens and hasattr(screens["dashboard"], "load_data"):
-                    screens["dashboard"].load_data()
+                if "dashboard" in screens and hasattr(screens["dashboard"], "_needs_refresh"):
+                    screens["dashboard"]._needs_refresh = True
         else:
             messagebox.showerror("Hata", "Durum güncellenirken bir hata oluştu.")
 
@@ -481,3 +558,15 @@ class TekliflerScreen(ctk.CTkFrame):
         
         if hasattr(self.master.master, 'show_screen'):
             self.master.master.show_screen("yeni_teklif")
+
+    def apply_theme(self):
+        """Tema değişiminde ana renkleri günceller."""
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.table_frame.configure(fg_color=Renkler.CARD_BG)
+            self.lbl_title.configure(text_color=Renkler.TEXT_DARK)
+            self.btn_yeni.configure(fg_color=Renkler.PRIMARY, hover_color=Renkler.PRIMARY_HOVER)
+        except Exception:
+            pass
+        # Veri güncellemesi için bir sonraki görünümde reload yap
+        self._needs_refresh = True

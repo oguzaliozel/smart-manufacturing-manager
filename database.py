@@ -299,3 +299,20 @@ class Database:
             return False
         finally:
             conn.close()
+
+    def tema_guncelle(self, kullanici_id: int, tema: str) -> bool:
+        """Kullanıcının tema tercihini veritabanına kaydeder."""
+        try:
+            conn = self.connect()
+            cursor = conn.cursor()
+            cursor.execute(
+                "UPDATE kullanicilar SET tema = ? WHERE id = ?",
+                (tema, kullanici_id)
+            )
+            conn.commit()
+            return True
+        except sqlite3.Error as e:
+            print("Tema güncelleme hatası:", e)
+            return False
+        finally:
+            conn.close()

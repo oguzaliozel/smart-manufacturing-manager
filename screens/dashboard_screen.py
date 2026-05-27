@@ -13,6 +13,8 @@ class DashboardScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        # Tema değişiminde sonuç refresh isteniyor mu?
+        self._needs_refresh = False
 
         self.create_widgets()
         self.load_data()
@@ -126,11 +128,8 @@ class DashboardScreen(ctk.CTkFrame):
     def build_durum_card(self, parent):
         ctk.CTkLabel(parent, text="Teklif Dağılımı", font=Fontlar.BODY_BOLD, text_color=Renkler.TEXT_DARK).pack(anchor="w", padx=15, pady=(12, 2))
         
-        layout = ctk.CTkFrame(parent, fg_color="transparent")
-        layout.pack(fill="both", expand=True, padx=5, pady=2)
-        
-        self.pie_container = ctk.CTkFrame(layout, fg_color="transparent", width=140, height=140)
-        self.pie_container.pack(side="left", padx=(10, 0), expand=True)
+        self.pie_container = ctk.CTkFrame(parent, fg_color="transparent", width=140, height=140)
+        self.pie_container.pack(side="top", pady=(5, 5), expand=True)
         self.pie_container.pack_propagate(False)
         
         self.fig_pie = Figure(figsize=(1.4, 1.4), dpi=100, facecolor="white")
@@ -140,18 +139,20 @@ class DashboardScreen(ctk.CTkFrame):
         self.canvas_pie = FigureCanvasTkAgg(self.fig_pie, master=self.pie_container)
         self.canvas_pie.get_tk_widget().pack(fill="both", expand=True)
         
-        self.legend_panel = ctk.CTkFrame(layout, fg_color="transparent")
-        self.legend_panel.pack(side="right", fill="y", padx=(5, 10), pady=10, expand=True)
+        self.legend_panel = ctk.CTkFrame(parent, fg_color="transparent")
+        self.legend_panel.pack(side="bottom", fill="x", padx=10, pady=(5, 15))
+        self.legend_panel.grid_columnconfigure((0, 1, 2), weight=1)
         
-        self.lbl_leg_onay = self.create_legend_row(self.legend_panel, "Onay", "#10B981")
-        self.lbl_leg_bekle = self.create_legend_row(self.legend_panel, "Bekle", "#F59E0B")
-        self.lbl_leg_red = self.create_legend_row(self.legend_panel, "Red", "#EF4444")
+        self.lbl_leg_onay = self.create_legend_row(self.legend_panel, "Onay", "#10B981", 0)
+        self.lbl_leg_bekle = self.create_legend_row(self.legend_panel, "Bekle", "#F59E0B", 1)
+        self.lbl_leg_red = self.create_legend_row(self.legend_panel, "Red", "#EF4444", 2)
 
-    def create_legend_row(self, parent, label_text, color_hex):
+    def create_legend_row(self, parent, label_text, color_hex, col):
         frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="x", pady=3, anchor="w")
+        frame.grid(row=0, column=col, sticky="nsew", padx=2)
+        
         color_box = ctk.CTkFrame(frame, fg_color=color_hex, width=8, height=8, corner_radius=4)
-        color_box.pack(side="left", padx=(0, 5))
+        color_box.pack(side="left", padx=(0, 4))
         lbl = ctk.CTkLabel(frame, text=f"{label_text}: 0", font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_DARK)
         lbl.pack(side="left")
         return lbl
@@ -187,9 +188,9 @@ class DashboardScreen(ctk.CTkFrame):
 
     def build_hurda_ozet_card(self, parent):
         ctk.CTkLabel(parent, text="Hurda Özeti", font=Fontlar.BODY_BOLD, text_color=Renkler.TEXT_DARK).pack(anchor="w", padx=15, pady=(12, 5))
-        self.lbl_toplam_hurda = self.create_row(parent, "Toplam Hurda Miktarı:")
-        self.lbl_ortalama_hurda_fiyat = self.create_row(parent, "Ortalama Hurda Fiyatı:")
-        self.lbl_tahmini_hurda_kazanc = self.create_row(parent, "Potansiyel Kazanç:", color=Renkler.WARNING)
+        self.lbl_toplam_hurda = self.create_row(parent, "Toplam Miktar:")
+        self.lbl_ortalama_hurda_fiyat = self.create_row(parent, "Ortalama Fiyat:")
+        self.lbl_tahmini_hurda_kazanc = self.create_row(parent, "Potansiyel Değer:", color=Renkler.WARNING)
 
     def build_hizli_card(self, parent):
         ctk.CTkLabel(parent, text="Hızlı İşlemler", font=Fontlar.BODY_BOLD, text_color=Renkler.TEXT_DARK).pack(anchor="w", padx=15, pady=(12, 10))
@@ -202,7 +203,7 @@ class DashboardScreen(ctk.CTkFrame):
         self.create_hizli_btn(grid_frame, "Yeni Teklif", "yeni_teklif", 0, 0)
         self.create_hizli_btn(grid_frame, "Müşteri Ekle", "musteriler", 0, 1)
         self.create_hizli_btn(grid_frame, "Malzeme Ekle", "malzemeler", 1, 0)
-        self.create_hizli_btn(grid_frame, "İşlem Tanımla", "islemler", 1, 1)
+        self.create_hizli_btn(grid_frame, "İşlem Ekle", "islemler", 1, 1)
 
     def create_hizli_btn(self, parent, text, screen_name, row, col):
         btn = ctk.CTkButton(
@@ -306,8 +307,8 @@ class DashboardScreen(ctk.CTkFrame):
                 
                 teklif_no_kisa = f"TEK-{t_satir['teklif_no'][-4:] if t_satir['teklif_no'] else ''}"
                 firma_ad = t_satir['firma_adi'] or 'Bireysel'
-                if len(firma_ad) > 12:
-                    firma_ad = firma_ad[:10] + "..."
+                if len(firma_ad) > 10:
+                    firma_ad = firma_ad[:8] + ".."
                     
                 lbl_adi = ctk.CTkLabel(
                     satir, 
@@ -377,7 +378,10 @@ class DashboardScreen(ctk.CTkFrame):
             for islem_row in top_islemler:
                 fr = ctk.CTkFrame(self.list_islemler, fg_color="transparent")
                 fr.pack(fill="x", pady=2)
-                ctk.CTkLabel(fr, text=islem_row["islem_adi"], font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_DARK).pack(side="left")
+                islem_ad = islem_row["islem_adi"] or ""
+                if len(islem_ad) > 16:
+                    islem_ad = islem_ad[:14] + ".."
+                ctk.CTkLabel(fr, text=islem_ad, font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_DARK).pack(side="left")
                 ctk.CTkLabel(fr, text=f"{islem_row['count']} Kez", font=Fontlar.SMALL_BOLD, text_color=Renkler.PRIMARY).pack(side="right")
                 ctk.CTkFrame(self.list_islemler, fg_color=Renkler.BORDER, height=1).pack(fill="x", pady=1)
 
@@ -397,15 +401,18 @@ class DashboardScreen(ctk.CTkFrame):
             for is_row in yaklasan_isler:
                 fr = ctk.CTkFrame(self.list_yaklasan, fg_color="transparent")
                 fr.pack(fill="x", pady=2)
-                ctk.CTkLabel(fr, text=is_row["baslik"], font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_DARK).pack(side="left")
+                baslik_ad = is_row["baslik"] or ""
+                if len(baslik_ad) > 16:
+                    baslik_ad = baslik_ad[:14] + ".."
+                ctk.CTkLabel(fr, text=baslik_ad, font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_DARK).pack(side="left")
                 ctk.CTkLabel(fr, text=is_row["teslim_tarihi"], font=Fontlar.SMALL, text_color=Renkler.TEXT_GRAY).pack(side="right")
                 ctk.CTkFrame(self.list_yaklasan, fg_color=Renkler.BORDER, height=1).pack(fill="x", pady=1)
 
         # 8. Hurda Özeti Alt Bilgileri
         cursor.execute("SELECT SUM(fire_miktari), AVG(hurda_birim_fiyati) FROM hurda_hareketleri WHERE kullanici_id = ?", (user_id,))
         hurda_stats = cursor.fetchone()
-        toplam_h_miktar = hurda_stats[0] or 0.0
-        ort_h_fiyat = hurda_stats[1] or 0.0
+        toplam_h_miktar = max(0.0, hurda_stats[0] or 0.0)
+        ort_h_fiyat = max(0.0, hurda_stats[1] or 0.0)
         
         self.lbl_toplam_hurda.configure(text=f"{toplam_h_miktar:,.1f} Birim")
         self.lbl_ortalama_hurda_fiyat.configure(text=f"{ort_h_fiyat:,.2f} ₺")
@@ -451,7 +458,7 @@ class DashboardScreen(ctk.CTkFrame):
             fontweight="bold", 
             color=Renkler.TEXT_DARK
         )
-        self.canvas_pie.draw()
+        self.after(50, self.canvas_pie.draw)
 
     def draw_line_chart(self, ciro_data):
         self.ax_line.clear()
@@ -488,4 +495,22 @@ class DashboardScreen(ctk.CTkFrame):
         self.ax_line.yaxis.set_major_formatter(
             matplotlib.ticker.FuncFormatter(lambda x, pos: f"{int(x/1000)}k" if x >= 1000 else f"{int(x)}")
         )
-        self.canvas_line.draw()
+        self.after(50, self.canvas_line.draw)
+
+    def apply_theme(self):
+        """Tema değişiminde widget renklerini günceller. Ekranı destroy etmeye gerek yok."""
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        
+        import customtkinter as ctk_check
+        is_dark = ctk_check.get_appearance_mode() == "Dark"
+        chart_bg = "#1E293B" if is_dark else "white"
+        
+        try:
+            self.fig_pie.set_facecolor(chart_bg)
+            self.fig_line.set_facecolor(chart_bg)
+            self.after(80, lambda: self.canvas_pie.draw())
+            self.after(80, lambda: self.canvas_line.draw())
+        except Exception:
+            pass
+        
+        self._needs_refresh = True

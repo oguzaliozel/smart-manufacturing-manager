@@ -9,6 +9,7 @@ class AyarlarScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        self._needs_refresh = False
         
         self.create_widgets()
 
@@ -186,3 +187,7 @@ class AyarlarScreen(ctk.CTkFrame):
             messagebox.showerror("Hata", "Bu kullanıcı adı zaten başka bir kullanıcı tarafından kullanılıyor.")
         finally:
             conn.close()
+
+    def apply_theme(self):
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        self._needs_refresh = False

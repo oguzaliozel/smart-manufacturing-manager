@@ -8,6 +8,7 @@ class KullanicilarScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        self._needs_refresh = False
         
         self.secili_kullanici_id = None
         
@@ -310,3 +311,7 @@ class KullanicilarScreen(ctk.CTkFrame):
         
         self.form_temizle()
         self.load_data()
+
+    def apply_theme(self):
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        self._needs_refresh = False

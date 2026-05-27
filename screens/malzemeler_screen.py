@@ -8,6 +8,7 @@ class MalzemelerScreen(ctk.CTkFrame):
         super().__init__(master, fg_color=Renkler.BG_LIGHT)
         self.current_user = current_user
         self.db = database.Database()
+        self._needs_refresh = False
         
         self.secili_malzeme_id = None
         
@@ -299,10 +300,21 @@ class MalzemelerScreen(ctk.CTkFrame):
             messagebox.showerror("Sistem Hatası", f"Beklenmeyen bir hata oluştu: {e}")
 
     def tetikle_sayfa_guncellemeleri(self):
-        # Dashboard ve Yeni Teklif sayfalarının önbellek verilerini de anında tazeleyelim
+        # Dashboard ve Yeni Teklif sayfalarının önbelleğelerini de aninda tazeleyelim
         if hasattr(self.master.master, 'screens'):
             screens = self.master.master.screens
-            if "dashboard" in screens and hasattr(screens["dashboard"], "load_data"):
-                screens["dashboard"].load_data()
-            if "yeni_teklif" in screens and hasattr(screens["yeni_teklif"], "load_data"):
-                screens["yeni_teklif"].load_data()
+            if "dashboard" in screens and hasattr(screens["dashboard"], "_needs_refresh"):
+                screens["dashboard"]._needs_refresh = True
+            if "yeni_teklif" in screens and hasattr(screens["yeni_teklif"], "_needs_refresh"):
+                screens["yeni_teklif"]._needs_refresh = True
+
+    def apply_theme(self):
+        """Tema değişiminde ana renkleri günceller."""
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.left_card.configure(fg_color=Renkler.CARD_BG)
+            self.right_card.configure(fg_color=Renkler.CARD_BG)
+            self.lbl_form_title.configure(text_color=Renkler.TEXT_DARK)
+        except Exception:
+            pass
+        self._needs_refresh = True

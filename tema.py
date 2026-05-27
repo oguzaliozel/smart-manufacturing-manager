@@ -1,37 +1,165 @@
+"""
+tema.py — Merkezi Tema Yönetim Sistemi
+Açık ve Koyu tema için tüm renk değerlerini tutar.
+ThemeManager ile dinamik olarak değiştirilebilir.
+"""
+import customtkinter as ctk
+
+# ── RENK PALETLERİ ────────────────────────────────────────────────────────────
+
+LIGHT_COLORS = {
+    "BG_LIGHT":        "#F5F7FB",
+    "CARD_BG":         "#FFFFFF",
+    "CARD_BG2":        "#F8FAFC",
+    "SIDEBAR_BG":      "#172033",
+    "SIDEBAR_HOVER":   "#22304A",
+    "PRIMARY":         "#2F6BFF",
+    "PRIMARY_HOVER":   "#1D4ED8",
+    "TEXT_DARK":       "#0F172A",
+    "TEXT_LIGHT":      "#F8FAFC",
+    "TEXT_GRAY":       "#64748B",
+    "TEXT_HEADING":    "#0B1220",
+    "BORDER":          "#E2E8F0",
+    "INPUT_BG":        "#FFFFFF",
+    "INPUT_BORDER":    "#CBD5E1",
+    "SUCCESS":         "#16A34A",
+    "WARNING":         "#F59E0B",
+    "ERROR":           "#DC2626",
+    "INFO":            "#2563EB",
+    # Sidebar yazı rengi (açık temada sidebar koyu)
+    "SIDEBAR_TEXT":    "#F8FAFC",
+    "BG_DARK":         "#0F172A",
+}
+
+DARK_COLORS = {
+    "BG_LIGHT":        "#0F172A",
+    "CARD_BG":         "#111827",
+    "CARD_BG2":        "#1E293B",
+    "SIDEBAR_BG":      "#020617",
+    "SIDEBAR_HOVER":   "#1E293B",
+    "PRIMARY":         "#2563EB",
+    "PRIMARY_HOVER":   "#1D4ED8",
+    "TEXT_DARK":       "#F8FAFC",
+    "TEXT_LIGHT":      "#F8FAFC",
+    "TEXT_GRAY":       "#94A3B8",
+    "TEXT_HEADING":    "#FFFFFF",
+    "BORDER":          "#334155",
+    "INPUT_BG":        "#0F172A",
+    "INPUT_BORDER":    "#334155",
+    "SUCCESS":         "#22C55E",
+    "WARNING":         "#F59E0B",
+    "ERROR":           "#EF4444",
+    "INFO":            "#3B82F6",
+    # Sidebar yazı rengi
+    "SIDEBAR_TEXT":    "#F8FAFC",
+    "BG_DARK":         "#020617",
+}
+
+
+# ── RENKLER SINIFI — Dinamik class attribute'lar ──────────────────────────────
+
 class Renkler:
-    # Modern Açık Tema Renkleri
-    PRIMARY = "#2563EB"       # Mavi vurgu rengi
-    PRIMARY_HOVER = "#1D4ED8" # Hover için daha koyu mavi
-    
-    BG_LIGHT = "#F8FAFC"      # Açık arka plan
-    BG_DARK = "#0F172A"       # İleride kullanılacak koyu arka plan
-    
-    SIDEBAR_BG = "#1E293B"    # Koyu sidebar rengi
-    SIDEBAR_TEXT = "#F8FAFC"  # Sidebar metin rengi
-    SIDEBAR_HOVER = "#334155" # Sidebar menü hover
-    
-    TEXT_DARK = "#0F172A"     # Genel koyu metin (açık tema için)
-    TEXT_LIGHT = "#F8FAFC"    # Genel açık metin (koyu tema için)
-    TEXT_GRAY = "#64748B"     # Gri metin (alt başlıklar için)
-    
-    CARD_BG = "#FFFFFF"       # Kart arka planı (beyaz)
-    BORDER = "#E2E8F0"        # Sınır çizgileri
-    
-    # Durum renkleri
-    ERROR = "#EF4444"         # Kırmızı (Hata)
-    SUCCESS = "#10B981"       # Yeşil (Başarı)
-    WARNING = "#F59E0B"       # Turuncu (Uyarı)
-    INFO = "#3B82F6"          # Mavi (Bilgi)
+    """
+    Merkezi renk sınıfı. ThemeManager.apply() çağrıldığında
+    bu sınıfın tüm class attribute'ları güncellenir.
+    """
+    # Varsayılan: Açık Tema
+    BG_LIGHT        = LIGHT_COLORS["BG_LIGHT"]
+    CARD_BG         = LIGHT_COLORS["CARD_BG"]
+    CARD_BG2        = LIGHT_COLORS["CARD_BG2"]
+    SIDEBAR_BG      = LIGHT_COLORS["SIDEBAR_BG"]
+    SIDEBAR_HOVER   = LIGHT_COLORS["SIDEBAR_HOVER"]
+    PRIMARY         = LIGHT_COLORS["PRIMARY"]
+    PRIMARY_HOVER   = LIGHT_COLORS["PRIMARY_HOVER"]
+    TEXT_DARK       = LIGHT_COLORS["TEXT_DARK"]
+    TEXT_LIGHT      = LIGHT_COLORS["TEXT_LIGHT"]
+    TEXT_GRAY       = LIGHT_COLORS["TEXT_GRAY"]
+    TEXT_HEADING    = LIGHT_COLORS["TEXT_HEADING"]
+    BORDER          = LIGHT_COLORS["BORDER"]
+    INPUT_BG        = LIGHT_COLORS["INPUT_BG"]
+    INPUT_BORDER    = LIGHT_COLORS["INPUT_BORDER"]
+    SUCCESS         = LIGHT_COLORS["SUCCESS"]
+    WARNING         = LIGHT_COLORS["WARNING"]
+    ERROR           = LIGHT_COLORS["ERROR"]
+    INFO            = LIGHT_COLORS["INFO"]
+    SIDEBAR_TEXT    = LIGHT_COLORS["SIDEBAR_TEXT"]
+    BG_DARK         = LIGHT_COLORS["BG_DARK"]
+
+
+# ── FONTLAR SINIFI ────────────────────────────────────────────────────────────
 
 class Fontlar:
     FAMILY = "Segoe UI"
     
-    H1 = (FAMILY, 24, "bold")
-    H2 = (FAMILY, 20, "bold")
-    H3 = (FAMILY, 16, "bold")
+    H1         = (FAMILY, 24, "bold")
+    H2         = (FAMILY, 20, "bold")
+    H3         = (FAMILY, 16, "bold")
     
-    BODY = (FAMILY, 14)
-    BODY_BOLD = (FAMILY, 14, "bold")
+    BODY       = (FAMILY, 14)
+    BODY_BOLD  = (FAMILY, 14, "bold")
     
-    SMALL = (FAMILY, 12)
+    SMALL      = (FAMILY, 12)
     SMALL_BOLD = (FAMILY, 12, "bold")
+
+    # CTkFont nesneleri — CTkinter widget'larında kullanmak için
+    @staticmethod
+    def ctk_font(size=13, weight="normal", family="Segoe UI"):
+        return ctk.CTkFont(family=family, size=size, weight=weight)
+
+
+# ── TEMA YÖNETİCİSİ ──────────────────────────────────────────────────────────
+
+class ThemeManager:
+    """
+    Merkezi tema yöneticisi.
+    Kullanım: ThemeManager.apply("Koyu") veya ThemeManager.apply("Açık")
+    """
+    _current_theme: str = "Açık"
+    _callbacks: list = []
+
+    @classmethod
+    def current(cls) -> str:
+        return cls._current_theme
+
+    @classmethod
+    def is_dark(cls) -> bool:
+        return cls._current_theme == "Koyu"
+
+    @classmethod
+    def apply(cls, theme_name: str):
+        """
+        Tema adını alır ('Açık' veya 'Koyu'), Renkler sınıfını günceller
+        ve CTkinter görünüm modunu ayarlar.
+        """
+        cls._current_theme = theme_name
+        palette = DARK_COLORS if theme_name == "Koyu" else LIGHT_COLORS
+        
+        # Renkler sınıfının tüm attribute'larını güncelle
+        for key, value in palette.items():
+            setattr(Renkler, key, value)
+        
+        # CTkinter'ın kendi dark/light modunu ayarla
+        ctk_mode = "Dark" if theme_name == "Koyu" else "Light"
+        ctk.set_appearance_mode(ctk_mode)
+        
+        # Kayıtlı callback'leri çağır
+        for cb in cls._callbacks:
+            try:
+                cb(theme_name)
+            except Exception:
+                pass
+
+    @classmethod
+    def register_callback(cls, callback):
+        """Tema değişiminde çağrılacak fonksiyon kaydet."""
+        if callback not in cls._callbacks:
+            cls._callbacks.append(callback)
+
+    @classmethod
+    def unregister_callback(cls, callback):
+        if callback in cls._callbacks:
+            cls._callbacks.remove(callback)
+
+    @classmethod
+    def get_ctk_mode(cls) -> str:
+        return "Dark" if cls._current_theme == "Koyu" else "Light"
