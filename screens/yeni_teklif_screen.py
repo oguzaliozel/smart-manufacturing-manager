@@ -16,6 +16,7 @@ class YeniTeklifScreen(ctk.CTkFrame):
         self.islemler = []
         
         self.edit_teklif_id = None # Düzenlenen teklifin ID'si (None ise yeni teklif)
+        self._needs_refresh = False
         
         self.create_widgets()
         self.load_combobox_data()
@@ -495,3 +496,15 @@ class YeniTeklifScreen(ctk.CTkFrame):
     def geri_don(self):
         if hasattr(self.master.master, 'show_screen'):
             self.master.master.show_screen("teklifler")
+
+    def apply_theme(self):
+        self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.form_frame.configure(fg_color=Renkler.CARD_BG)
+            self.summary_frame.configure(fg_color=Renkler.CARD_BG)
+        except Exception:
+            pass
+        self._needs_refresh = True
+        is_active = (hasattr(self.master, "master") and getattr(self.master.master, "current_screen", None) == self)
+        if is_active:
+            self.load_data()

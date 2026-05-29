@@ -254,7 +254,7 @@ class DashboardScreen(ctk.CTkFrame):
         cursor.execute("""
             SELECT SUM(son_tutar), SUM(net_maliyet), AVG(kar_orani), SUM(tahmini_hurda_degeri)
             FROM teklifler 
-            WHERE kullanici_id = ? AND durum IN ('Beklemede', 'Onaylandı')
+            WHERE kullanici_id = ? AND durum = 'Onaylandı'
         """, (user_id,))
         stats = cursor.fetchone()
         
@@ -356,7 +356,7 @@ class DashboardScreen(ctk.CTkFrame):
         cursor.execute("""
             SELECT strftime('%m', olusturma_tarihi) AS ay, SUM(son_tutar)
             FROM teklifler 
-            WHERE kullanici_id = ? AND strftime('%Y', olusturma_tarihi) = strftime('%Y', 'now') AND durum IN ('Beklemede', 'Onaylandı')
+            WHERE kullanici_id = ? AND strftime('%Y', olusturma_tarihi) = strftime('%Y', 'now') AND durum = 'Onaylandı'
             GROUP BY ay ORDER BY ay
         """, (user_id,))
         ciro_data = dict(cursor.fetchall())
@@ -426,6 +426,11 @@ class DashboardScreen(ctk.CTkFrame):
     # ── MATPLOTLIB DRAW METODLARI ───────────────────────────────────────────
 
     def draw_donut_chart(self, onay, bekle, red, toplam):
+        is_dark = ctk.get_appearance_mode() == "Dark"
+        chart_bg = "#1E293B" if is_dark else "white"
+        self.fig_pie.set_facecolor(chart_bg)
+        self.ax_pie.set_facecolor(chart_bg)
+        
         self.ax_pie.clear()
         sizes, colors = [], []
         
@@ -456,11 +461,16 @@ class DashboardScreen(ctk.CTkFrame):
             ha="center", va="center", 
             fontsize=8, 
             fontweight="bold", 
-            color=Renkler.TEXT_DARK
+            color=Renkler.get(Renkler.TEXT_DARK)
         )
         self.after(50, self.canvas_pie.draw)
 
     def draw_line_chart(self, ciro_data):
+        is_dark = ctk.get_appearance_mode() == "Dark"
+        chart_bg = "#1E293B" if is_dark else "white"
+        self.fig_line.set_facecolor(chart_bg)
+        self.ax_line.set_facecolor(chart_bg)
+        
         self.ax_line.clear()
         
         aylar_ad = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"]
@@ -489,7 +499,7 @@ class DashboardScreen(ctk.CTkFrame):
         self.ax_line.spines["right"].set_visible(False)
         self.ax_line.spines["left"].set_color("#E2E8F0")
         self.ax_line.spines["bottom"].set_color("#E2E8F0")
-        self.ax_line.tick_params(colors=Renkler.TEXT_GRAY, labelsize=7)
+        self.ax_line.tick_params(colors=Renkler.get(Renkler.TEXT_GRAY), labelsize=7)
         self.ax_line.grid(axis="y", linestyle="--", alpha=0.4, color="#E2E8F0")
         
         self.ax_line.yaxis.set_major_formatter(
@@ -501,16 +511,19 @@ class DashboardScreen(ctk.CTkFrame):
         """Tema değişiminde widget renklerini günceller. Ekranı destroy etmeye gerek yok."""
         self.configure(fg_color=Renkler.BG_LIGHT)
         
-        import customtkinter as ctk_check
-        is_dark = ctk_check.get_appearance_mode() == "Dark"
-        chart_bg = "#1E293B" if is_dark else "white"
-        
-        try:
-            self.fig_pie.set_facecolor(chart_bg)
-            self.fig_line.set_facecolor(chart_bg)
-            self.after(80, lambda: self.canvas_pie.draw())
-            self.after(80, lambda: self.canvas_line.draw())
-        except Exception:
-            pass
-        
         self._needs_refresh = True
+        
+        # Check if active
+        is_active = (hasattr(self.master, "master") and getattr(self.master.master, "current_screen", None) == self)
+        if is_active:
+            import customtkinter as ctk_check
+            is_dark = ctk_check.get_appearance_mode() == "Dark"
+            chart_bg = "#1E293B" if is_dark else "white"
+            
+            try:
+                self.fig_pie.set_facecolor(chart_bg)
+                self.fig_line.set_facecolor(chart_bg)
+                self.after(80, lambda: self.canvas_pie.draw())
+                self.after(80, lambda: self.canvas_line.draw())
+            except Exception:
+                pass

@@ -101,7 +101,7 @@ class TakvimScreen(ctk.CTkFrame):
         self.grid_frame.grid_rowconfigure((0, 1, 2, 3, 4, 5), weight=1, uniform="weeks")
 
         # ── SAĞ: SEÇİLİ GÜN DETAYI VE YENİ İŞ EKLEME (Notion/SaaS Tasarım) ────
-        self.right_card = ctk.CTkFrame(self.content_frame, fg_color="white", corner_radius=12, width=350)
+        self.right_card = ctk.CTkFrame(self.content_frame, fg_color=Renkler.CARD_BG, corner_radius=12, width=350)
         self.right_card.grid(row=0, column=1, sticky="nsew")
         self.right_card.pack_propagate(False)
         
@@ -328,11 +328,11 @@ class TakvimScreen(ctk.CTkFrame):
                 if cell_date == self.selected_date:
                     border_w = 2
                     border_c = Renkler.PRIMARY
-                    bg_col = "white"
+                    bg_col = Renkler.CARD_BG
                 elif cell_date == bugun:
                     border_w = 2
                     border_c = Renkler.SUCCESS
-                    bg_col = "white"
+                    bg_col = Renkler.CARD_BG
                 else:
                     border_c = bg_col
                 
@@ -682,6 +682,11 @@ class TakvimScreen(ctk.CTkFrame):
         self.configure(fg_color=Renkler.BG_LIGHT)
         try:
             self.calendar_card.configure(fg_color=Renkler.CARD_BG)
+            self.right_card.configure(fg_color=Renkler.CARD_BG)
+            self.task_form_frame.configure(fg_color=Renkler.BG_LIGHT)
         except Exception:
             pass
         self._needs_refresh = True
+        is_active = (hasattr(self.master, "master") and getattr(self.master.master, "current_screen", None) == self)
+        if is_active:
+            self.load_data()

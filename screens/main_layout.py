@@ -183,20 +183,19 @@ class MainLayout(ctk.CTkFrame):
         # 1. ThemeManager ile renkleri güncelle
         ThemeManager.apply(new_theme)
         
-        # 2. DB'ye kaydet
-        self.db.tema_guncelle(self.current_user["id"], new_theme)
+        # 2. DB'deki değer ile farklıysa güncelle
+        if self.current_user.get("tema") != new_theme:
+            self.db.tema_guncelle(self.current_user["id"], new_theme)
+            self.current_user["tema"] = new_theme
         
-        # 3. Mevcut kullanıcı dict'ini güncelle
-        self.current_user["tema"] = new_theme
-        
-        # 4. Ana layout arka plan renklerini güncelle
+        # 3. Ana layout arka plan renklerini güncelle
         self.configure(fg_color=Renkler.BG_LIGHT)
         self.content_area.configure(fg_color=Renkler.BG_LIGHT)
         
-        # 5. Sidebar renklerini güncelle
+        # 4. Sidebar renklerini güncelle
         self._refresh_sidebar_colors()
         
-        # 6. Cached ekranların renklerini güncelle (destroy etmeden!)
+        # 5. Cached ekranların renklerini güncelle (destroy etmeden!)
         for screen in self.screens.values():
             try:
                 if hasattr(screen, "apply_theme"):
@@ -204,7 +203,7 @@ class MainLayout(ctk.CTkFrame):
             except Exception:
                 pass
         
-        # 7. Mevcut ekranı yeniden pack et (renkler güncellendikten sonra görünür olsun)
+        # 6. Mevcut ekranı yeniden pack et (renkler güncellendikten sonra görünür olsun)
         if self.current_screen:
             self.current_screen.pack_forget()
             self.current_screen.pack(fill="both", expand=True)

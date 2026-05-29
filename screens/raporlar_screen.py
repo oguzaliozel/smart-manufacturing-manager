@@ -431,8 +431,6 @@ class RaporlarScreen(ctk.CTkFrame):
             # D: İşlemler ve Alt Raporlar
             teklif_ids = [t["id"] for t in teklifler]
             
-            # ── TABLO 1: Müşteri Bazlı ────────────────────────────────────────
-            for w in self.scr_t_cust.winfo_children(): w.destroy()
             musteri_data = {}
             for t in teklifler:
                 m_name = t["firma_adi"] or "Bilinmeyen Müşteri"
@@ -491,6 +489,7 @@ class RaporlarScreen(ctk.CTkFrame):
     # ── TABLO RENDER METODLARI ────────────────────────────────────────────────
 
     def render_customer_table(self):
+        for w in self.scr_t_cust.winfo_children(): w.destroy()
         # Header Row
         h_frame = ctk.CTkFrame(self.scr_t_cust, fg_color="transparent")
         h_frame.pack(fill="x", pady=2)
@@ -515,6 +514,7 @@ class RaporlarScreen(ctk.CTkFrame):
             ctk.CTkFrame(self.scr_t_cust, fg_color=Renkler.BORDER, height=1).pack(fill="x", pady=1)
 
     def render_islem_table(self):
+        for w in self.scr_t_ops.winfo_children(): w.destroy()
         h_frame = ctk.CTkFrame(self.scr_t_ops, fg_color="transparent")
         h_frame.pack(fill="x", pady=2)
         ctk.CTkLabel(h_frame, text="İşlem / Makine", font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_GRAY, anchor="w").pack(side="left")
@@ -538,6 +538,7 @@ class RaporlarScreen(ctk.CTkFrame):
             ctk.CTkFrame(self.scr_t_ops, fg_color=Renkler.BORDER, height=1).pack(fill="x", pady=1)
 
     def render_malzeme_table(self):
+        for w in self.scr_t_mat.winfo_children(): w.destroy()
         h_frame = ctk.CTkFrame(self.scr_t_mat, fg_color="transparent")
         h_frame.pack(fill="x", pady=2)
         ctk.CTkLabel(h_frame, text="Malzeme", font=Fontlar.SMALL_BOLD, text_color=Renkler.TEXT_GRAY, anchor="w").pack(side="left")
@@ -755,14 +756,11 @@ class RaporlarScreen(ctk.CTkFrame):
                         if isinstance(child, ctk.CTkLabel):
                             child.configure(text_color=Renkler.TEXT_DARK)
                             
-            # Tablo içlerindeki yazılar
-            self.render_customer_table()
-            self.render_islem_table()
-            self.render_malzeme_table()
-            
         except Exception:
             pass
             
         # Grafikleri yeni tema renkleriyle çiz
         self._needs_refresh = True
-        self.load_data()
+        is_active = (hasattr(self.master, "master") and getattr(self.master.master, "current_screen", None) == self)
+        if is_active:
+            self.load_data()

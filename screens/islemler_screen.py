@@ -228,7 +228,11 @@ class IslemlerScreen(ctk.CTkFrame):
         self.configure(fg_color=Renkler.BG_LIGHT)
         try:
             self.left_card.configure(fg_color=Renkler.CARD_BG)
+            self.right_card.configure(fg_color=Renkler.CARD_BG)
             self.lbl_form_title.configure(text_color=Renkler.TEXT_DARK)
         except Exception:
             pass
         self._needs_refresh = True
+        is_active = (hasattr(self.master, "master") and getattr(self.master.master, "current_screen", None) == self)
+        if is_active:
+            self.load_data()

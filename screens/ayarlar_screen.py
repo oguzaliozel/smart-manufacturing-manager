@@ -164,10 +164,15 @@ class AyarlarScreen(ctk.CTkFrame):
                 self.current_user["sifre"] = new_pwd
                 
             # Tema uygulamasını güncelle
-            if tema_val == "Koyu":
-                ctk.set_appearance_mode("Dark")
+            if hasattr(self.master.master, "_on_theme_change"):
+                theme_str = "🌙 Koyu" if tema_val == "Koyu" else "☀ Açık"
+                self.master.master.seg_tema.set(theme_str)
+                self.master.master._on_theme_change(theme_str)
             else:
-                ctk.set_appearance_mode("Light")
+                if tema_val == "Koyu":
+                    ctk.set_appearance_mode("Dark")
+                else:
+                    ctk.set_appearance_mode("Light")
                 
             # Dil ayarlarını güncelle
             dil.DIL = dil_val
@@ -190,4 +195,11 @@ class AyarlarScreen(ctk.CTkFrame):
 
     def apply_theme(self):
         self.configure(fg_color=Renkler.BG_LIGHT)
+        try:
+            self.profile_card.configure(fg_color=Renkler.CARD_BG)
+            self.password_card.configure(fg_color=Renkler.CARD_BG)
+            self.pref_card.configure(fg_color=Renkler.CARD_BG)
+            self.btn_save.configure(fg_color=Renkler.PRIMARY, hover_color=Renkler.PRIMARY_HOVER)
+        except Exception:
+            pass
         self._needs_refresh = False

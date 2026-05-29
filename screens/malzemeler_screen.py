@@ -318,3 +318,6 @@ class MalzemelerScreen(ctk.CTkFrame):
         except Exception:
             pass
         self._needs_refresh = True
+        is_active = (hasattr(self.master, "master") and getattr(self.master.master, "current_screen", None) == self)
+        if is_active:
+            self.load_data()

@@ -314,4 +314,16 @@ class KullanicilarScreen(ctk.CTkFrame):
 
     def apply_theme(self):
         self.configure(fg_color=Renkler.BG_LIGHT)
-        self._needs_refresh = False
+        try:
+            if hasattr(self, 'left_card'):
+                self.left_card.configure(fg_color=Renkler.CARD_BG)
+            if hasattr(self, 'right_card'):
+                self.right_card.configure(fg_color=Renkler.CARD_BG)
+            if hasattr(self, 'lbl_form_title'):
+                self.lbl_form_title.configure(text_color=Renkler.TEXT_DARK)
+        except Exception:
+            pass
+        self._needs_refresh = True
+        is_active = (hasattr(self.master, "master") and getattr(self.master.master, "current_screen", None) == self)
+        if is_active and self.current_user.get("rol") == "Yönetici":
+            self.load_data()

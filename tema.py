@@ -60,30 +60,39 @@ DARK_COLORS = {
 
 class Renkler:
     """
-    Merkezi renk sınıfı. ThemeManager.apply() çağrıldığında
-    bu sınıfın tüm class attribute'ları güncellenir.
+    Merkezi renk sınıfı. Her bir renk (Açık, Koyu) olacak şekilde tuple formatındadır.
+    Bu sayede CustomTkinter widget'ları tema geçişlerinde otomatik olarak güncellenir.
     """
-    # Varsayılan: Açık Tema
-    BG_LIGHT        = LIGHT_COLORS["BG_LIGHT"]
-    CARD_BG         = LIGHT_COLORS["CARD_BG"]
-    CARD_BG2        = LIGHT_COLORS["CARD_BG2"]
-    SIDEBAR_BG      = LIGHT_COLORS["SIDEBAR_BG"]
-    SIDEBAR_HOVER   = LIGHT_COLORS["SIDEBAR_HOVER"]
-    PRIMARY         = LIGHT_COLORS["PRIMARY"]
-    PRIMARY_HOVER   = LIGHT_COLORS["PRIMARY_HOVER"]
-    TEXT_DARK       = LIGHT_COLORS["TEXT_DARK"]
-    TEXT_LIGHT      = LIGHT_COLORS["TEXT_LIGHT"]
-    TEXT_GRAY       = LIGHT_COLORS["TEXT_GRAY"]
-    TEXT_HEADING    = LIGHT_COLORS["TEXT_HEADING"]
-    BORDER          = LIGHT_COLORS["BORDER"]
-    INPUT_BG        = LIGHT_COLORS["INPUT_BG"]
-    INPUT_BORDER    = LIGHT_COLORS["INPUT_BORDER"]
-    SUCCESS         = LIGHT_COLORS["SUCCESS"]
-    WARNING         = LIGHT_COLORS["WARNING"]
-    ERROR           = LIGHT_COLORS["ERROR"]
-    INFO            = LIGHT_COLORS["INFO"]
-    SIDEBAR_TEXT    = LIGHT_COLORS["SIDEBAR_TEXT"]
-    BG_DARK         = LIGHT_COLORS["BG_DARK"]
+    BG_LIGHT        = (LIGHT_COLORS["BG_LIGHT"], DARK_COLORS["BG_LIGHT"])
+    CARD_BG         = (LIGHT_COLORS["CARD_BG"], DARK_COLORS["CARD_BG"])
+    CARD_BG2        = (LIGHT_COLORS["CARD_BG2"], DARK_COLORS["CARD_BG2"])
+    SIDEBAR_BG      = (LIGHT_COLORS["SIDEBAR_BG"], DARK_COLORS["SIDEBAR_BG"])
+    SIDEBAR_HOVER   = (LIGHT_COLORS["SIDEBAR_HOVER"], DARK_COLORS["SIDEBAR_HOVER"])
+    PRIMARY         = (LIGHT_COLORS["PRIMARY"], DARK_COLORS["PRIMARY"])
+    PRIMARY_HOVER   = (LIGHT_COLORS["PRIMARY_HOVER"], DARK_COLORS["PRIMARY_HOVER"])
+    TEXT_DARK       = (LIGHT_COLORS["TEXT_DARK"], DARK_COLORS["TEXT_DARK"])
+    TEXT_LIGHT      = (LIGHT_COLORS["TEXT_LIGHT"], DARK_COLORS["TEXT_LIGHT"])
+    TEXT_GRAY       = (LIGHT_COLORS["TEXT_GRAY"], DARK_COLORS["TEXT_GRAY"])
+    TEXT_HEADING    = (LIGHT_COLORS["TEXT_HEADING"], DARK_COLORS["TEXT_HEADING"])
+    BORDER          = (LIGHT_COLORS["BORDER"], DARK_COLORS["BORDER"])
+    INPUT_BG        = (LIGHT_COLORS["INPUT_BG"], DARK_COLORS["INPUT_BG"])
+    INPUT_BORDER    = (LIGHT_COLORS["INPUT_BORDER"], DARK_COLORS["INPUT_BORDER"])
+    SUCCESS         = (LIGHT_COLORS["SUCCESS"], DARK_COLORS["SUCCESS"])
+    WARNING         = (LIGHT_COLORS["WARNING"], DARK_COLORS["WARNING"])
+    ERROR           = (LIGHT_COLORS["ERROR"], DARK_COLORS["ERROR"])
+    INFO            = (LIGHT_COLORS["INFO"], DARK_COLORS["INFO"])
+    SIDEBAR_TEXT    = (LIGHT_COLORS["SIDEBAR_TEXT"], DARK_COLORS["SIDEBAR_TEXT"])
+    BG_DARK         = (LIGHT_COLORS["BG_DARK"], DARK_COLORS["BG_DARK"])
+
+    @classmethod
+    def get(cls, color_value):
+        """
+        Matplotlib veya diğer standart kütüphaneler için 
+        aktif temaya göre tek bir renk string değeri döner.
+        """
+        if isinstance(color_value, tuple) and len(color_value) == 2:
+            return color_value[1 if ThemeManager.is_dark() else 0]
+        return color_value
 
 
 # ── FONTLAR SINIFI ────────────────────────────────────────────────────────────
@@ -128,15 +137,9 @@ class ThemeManager:
     @classmethod
     def apply(cls, theme_name: str):
         """
-        Tema adını alır ('Açık' veya 'Koyu'), Renkler sınıfını günceller
-        ve CTkinter görünüm modunu ayarlar.
+        Tema adını alır ('Açık' veya 'Koyu') ve CTkinter görünüm modunu ayarlar.
         """
         cls._current_theme = theme_name
-        palette = DARK_COLORS if theme_name == "Koyu" else LIGHT_COLORS
-        
-        # Renkler sınıfının tüm attribute'larını güncelle
-        for key, value in palette.items():
-            setattr(Renkler, key, value)
         
         # CTkinter'ın kendi dark/light modunu ayarla
         ctk_mode = "Dark" if theme_name == "Koyu" else "Light"
