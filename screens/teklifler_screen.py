@@ -220,7 +220,7 @@ class TekliflerScreen(ctk.CTkFrame):
             tarih = t_satir['olusturma_tarihi'] or "-"
             
             # Satır Çerçevesi (Sabit 64px yükseklik)
-            row = ctk.CTkFrame(self.list_frame, fg_color="white", corner_radius=6, height=64)
+            row = ctk.CTkFrame(self.list_frame, fg_color=Renkler.CARD_BG, corner_radius=6, height=64)
             row.pack(fill="x", pady=3, padx=5)
             row.grid_propagate(False)
             row.pack_propagate(False)
@@ -237,11 +237,11 @@ class TekliflerScreen(ctk.CTkFrame):
                 
             # Hover efekti bind helper
             def make_hover_effect(widget_item, row_frame=row):
-                widget_item.bind("<Enter>", lambda e: row_frame.configure(fg_color="#F1F5F9"))
-                widget_item.bind("<Leave>", lambda e: row_frame.configure(fg_color="white"))
+                widget_item.bind("<Enter>", lambda e: row_frame.configure(fg_color=Renkler.CARD_BG2))
+                widget_item.bind("<Leave>", lambda e: row_frame.configure(fg_color=Renkler.CARD_BG))
                 
-            row.bind("<Enter>", lambda e, r=row: r.configure(fg_color="#F1F5F9"))
-            row.bind("<Leave>", lambda e, r=row: r.configure(fg_color="white"))
+            row.bind("<Enter>", lambda e, r=row: r.configure(fg_color=Renkler.CARD_BG2))
+            row.bind("<Leave>", lambda e, r=row: r.configure(fg_color=Renkler.CARD_BG))
 
             # Uzun müşteri isimlerini kırp
             if len(musteri) > 22:

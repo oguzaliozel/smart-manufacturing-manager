@@ -135,13 +135,13 @@ class TakvimScreen(ctk.CTkFrame):
         
         self.entry_task_title = ctk.CTkEntry(
             self.task_form_frame, placeholder_text="Görev Başlığı...", 
-            font=Fontlar.SMALL, height=28, fg_color="white", border_width=1, border_color="#E2E8F0"
+            font=Fontlar.SMALL, height=28, fg_color=Renkler.INPUT_BG, border_width=1, border_color=Renkler.BORDER
         )
         self.entry_task_title.pack(fill="x", padx=15, pady=3)
         
         self.entry_task_desc = ctk.CTkEntry(
             self.task_form_frame, placeholder_text="Açıklama...", 
-            font=Fontlar.SMALL, height=28, fg_color="white", border_width=1, border_color="#E2E8F0"
+            font=Fontlar.SMALL, height=28, fg_color=Renkler.INPUT_BG, border_width=1, border_color=Renkler.BORDER
         )
         self.entry_task_desc.pack(fill="x", padx=15, pady=3)
         
@@ -564,7 +564,7 @@ class TakvimScreen(ctk.CTkFrame):
         detail_win.title("Plan Detayı")
         detail_win.geometry("380x280")
         detail_win.resizable(False, False)
-        detail_win.configure(fg_color="white")
+        detail_win.configure(fg_color=Renkler.CARD_BG)
         detail_win.transient(self)
         detail_win.grab_set()
         
