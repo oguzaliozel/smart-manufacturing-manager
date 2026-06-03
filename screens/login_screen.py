@@ -119,9 +119,11 @@ class LoginScreen(ctk.CTkFrame):
             fg_color=Renkler.CARD_BG,
             corner_radius=15,
             border_width=1,
-            border_color=Renkler.BORDER
+            border_color=Renkler.BORDER,
+            width=420,
+            height=480
         )
-        self.form_container.place(relx=0.5, rely=0.5, anchor="center", width=420, height=480)
+        self.form_container.place(relx=0.5, rely=0.5, anchor="center")
         self.form_container.grid_propagate(False)
         
         # Üst Simge (Opsiyonel kilit ikonu)
