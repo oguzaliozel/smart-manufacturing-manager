@@ -9,10 +9,8 @@
 
 ### 🔐 1. Kurumsal Giriş Ekranı (Sisteme Giriş)
 Üniversite sunum standartlarına uygun, sade, güvenli ve kurumsal split-panel giriş ekranı. (Kullanıcı doğrulanırken dinamik yükleme animasyonu içerir).
-* **Açık Tema Giriş Ekranı:**
+* ** Giriş Ekranı:**
 ![Açık Tema Giriş Ekranı](assets/screenshots/00_login_light.png)
-* **Koyu Tema Giriş Ekranı:**
-![Koyu Tema Giriş Ekranı](assets/screenshots/00_login_dark.png)
 
 ### 📊 2. Panel Özeti (Dashboard - Çift Tema Desteği)
 Atölyenizin gerçek zamanlı durumunu, ciro dağılımlarını, aktif siparişleri ve hurda depo değerlerini tek ekrandan izleyin. Matplotlib grafikleri seçilen temayla dinamik olarak uyum sağlar.
