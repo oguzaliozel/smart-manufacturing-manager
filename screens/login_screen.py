@@ -138,7 +138,7 @@ class LoginScreen(ctk.CTkFrame):
             border_width=1,
             border_color="#E2E8F0",
             width=430,
-            height=440
+            height=470
         )
         self.form_card.pack(pady=(0, 20))
         self.form_card.pack_propagate(False)
@@ -189,6 +189,34 @@ class LoginScreen(ctk.CTkFrame):
         )
         self.entry_password.pack(pady=(0, 8), padx=45, fill="x")
         
+        # Beni Hatırla & Şifremi Unuttum Satırı
+        self.options_frame = ctk.CTkFrame(self.form_card, fg_color="transparent")
+        self.options_frame.pack(fill="x", padx=45, pady=(5, 12))
+        
+        self.cb_remember = ctk.CTkCheckBox(
+            self.options_frame,
+            text="Beni Hatırla",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color="#64748B",
+            fg_color="#2563EB",
+            hover_color="#1D4ED8",
+            border_width=1.5,
+            corner_radius=4,
+            checkbox_width=16,
+            checkbox_height=16
+        )
+        self.cb_remember.pack(side="left")
+        
+        self.lbl_forgot = ctk.CTkLabel(
+            self.options_frame,
+            text="Şifremi Unuttum",
+            font=ctk.CTkFont(family="Segoe UI", size=11, underline=True),
+            text_color="#64748B",
+            cursor="hand2"
+        )
+        self.lbl_forgot.pack(side="right")
+        self.lbl_forgot.bind("<Button-1>", lambda e: self.forgot_password_clicked())
+        
         # Hata / Doğrulama Durum Mesajı
         self.lbl_error = ctk.CTkLabel(
             self.form_card, 
@@ -215,8 +243,8 @@ class LoginScreen(ctk.CTkFrame):
             font=Fontlar.BODY_BOLD, 
             height=42, 
             corner_radius=6,
-            fg_color="#2563EB", # Ana Mavi
-            hover_color="#1D4ED8", # Hover Koyu Mavi
+            fg_color="#2563EB", 
+            hover_color="#1D4ED8", 
             text_color="#FFFFFF",
             command=self.handle_login
         )
@@ -266,3 +294,39 @@ class LoginScreen(ctk.CTkFrame):
     def finish_login(self, user):
         self.prog_bar.stop()
         self.on_login_success(user)
+        
+    def forgot_password_clicked(self):
+        info_win = ctk.CTkToplevel(self)
+        info_win.title("Şifre Sıfırlama")
+        info_win.geometry("360x170")
+        info_win.resizable(False, False)
+        info_win.configure(fg_color="#FFFFFF")
+        info_win.transient(self)
+        info_win.grab_set()
+        
+        # Ekranı ortala
+        info_win.update_idletasks()
+        x = self.winfo_screenwidth() // 2 - 180
+        y = self.winfo_screenheight() // 2 - 85
+        info_win.geometry(f"+{x}+{y}")
+        
+        lbl = ctk.CTkLabel(
+            info_win,
+            text="Güvenlik nedeniyle şifre sıfırlama işlemleri\nyalnızca sistem yöneticisi tarafından yapılabilir.\n\nLütfen atölye yöneticiniz ile iletişime geçiniz.",
+            font=ctk.CTkFont(family="Segoe UI", size=12),
+            text_color="#0F172A",
+            justify="center"
+        )
+        lbl.pack(pady=(25, 15))
+        
+        btn = ctk.CTkButton(
+            info_win,
+            text="Tamam",
+            font=Fontlar.SMALL_BOLD,
+            width=100,
+            height=32,
+            fg_color="#2563EB",
+            hover_color="#1D4ED8",
+            command=info_win.destroy
+        )
+        btn.pack()
