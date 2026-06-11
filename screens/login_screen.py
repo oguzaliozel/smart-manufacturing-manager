@@ -2,6 +2,8 @@ import customtkinter as ctk
 from tema import Renkler, Fontlar
 from dil import t
 import database
+import json
+import os
 
 class LoginScreen(ctk.CTkFrame):
     def __init__(self, master, on_login_success):
@@ -207,6 +209,21 @@ class LoginScreen(ctk.CTkFrame):
         )
         self.cb_remember.pack(side="left")
         
+        self.cb_show_pass = ctk.CTkCheckBox(
+            self.options_frame,
+            text="Şifreyi Göster",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color="#64748B",
+            fg_color="#2563EB",
+            hover_color="#1D4ED8",
+            border_width=1.5,
+            corner_radius=4,
+            checkbox_width=16,
+            checkbox_height=16,
+            command=self.toggle_password_visibility
+        )
+        self.cb_show_pass.pack(side="left", padx=(15, 0))
+        
         self.lbl_forgot = ctk.CTkLabel(
             self.options_frame,
             text="Şifremi Unuttum",
@@ -264,6 +281,9 @@ class LoginScreen(ctk.CTkFrame):
         )
         self.lbl_academic.pack()
         
+        # Önceden kaydedilmiş kullanıcı adını yükle
+        self.load_settings()
+        
     def handle_login(self):
         username = self.entry_username.get().strip()
         password = self.entry_password.get().strip()
@@ -274,7 +294,10 @@ class LoginScreen(ctk.CTkFrame):
             
         user = self.db.login(username, password)
         if user:
-            # Giriş başarılı - Doğrulama durumunu göster
+            # Giriş başarılı - Beni hatırla tercihini kaydet
+            self.save_settings(username)
+            
+            # Doğrulama durumunu göster
             self.lbl_error.configure(text_color="#2563EB", text="Kullanıcı doğrulanıyor...")
             
             # Alanları devre dışı bırak
@@ -330,3 +353,44 @@ class LoginScreen(ctk.CTkFrame):
             command=info_win.destroy
         )
         btn.pack()
+
+    def toggle_password_visibility(self):
+        if self.cb_show_pass.get() == 1:
+            self.entry_password.configure(show="")
+        else:
+            self.entry_password.configure(show="*")
+
+    def load_settings(self):
+        settings_path = "data/settings.json"
+        if os.path.exists(settings_path):
+            try:
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+                remembered_username = settings.get("remembered_username", "")
+                if remembered_username:
+                    self.entry_username.insert(0, remembered_username)
+                    self.cb_remember.select()
+            except Exception as e:
+                print("Ayarlar yuklenirken hata olustu:", e)
+
+    def save_settings(self, username):
+        settings_path = "data/settings.json"
+        settings = {}
+        if os.path.exists(settings_path):
+            try:
+                with open(settings_path, "r", encoding="utf-8") as f:
+                    settings = json.load(f)
+            except Exception:
+                pass
+        
+        if self.cb_remember.get() == 1:
+            settings["remembered_username"] = username
+        else:
+            settings.pop("remembered_username", None)
+            
+        try:
+            os.makedirs(os.path.dirname(settings_path), exist_ok=True)
+            with open(settings_path, "w", encoding="utf-8") as f:
+                json.dump(settings, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            print("Ayarlar kaydedilirken hata olustu:", e)
