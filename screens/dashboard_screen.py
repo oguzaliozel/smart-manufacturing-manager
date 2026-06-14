@@ -2,6 +2,9 @@ import customtkinter as ctk
 from tema import Renkler, Fontlar
 import database
 from datetime import datetime
+import threading
+import urllib.request
+import xml.etree.ElementTree as ET
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -16,8 +19,13 @@ class DashboardScreen(ctk.CTkFrame):
         # Tema değişiminde sonuç refresh isteniyor mu?
         self._needs_refresh = False
 
+        self.usd_rate = "..."
+        self.eur_rate = "..."
+        self.rates_status = "loading" # loading, success, error
+
         self.create_widgets()
         self.load_data()
+        self.start_rates_fetching()
 
     def create_widgets(self):
         # Tüm sayfa içeriğini kaydırılabilir yapıyoruz (SaaS esnekliği için)
@@ -34,6 +42,22 @@ class DashboardScreen(ctk.CTkFrame):
             font=Fontlar.H1, 
             text_color=Renkler.TEXT_DARK
         ).pack(side="left")
+
+        # TCMB Döviz Kurları Widget'ı (Sağ tarafta)
+        self.rates_frame = ctk.CTkFrame(
+            self.header_frame, 
+            fg_color=Renkler.CARD_BG, 
+            corner_radius=8
+        )
+        self.rates_frame.pack(side="right", padx=(10, 0))
+        
+        self.rates_lbl = ctk.CTkLabel(
+            self.rates_frame,
+            text="Döviz kurları yükleniyor...",
+            font=Fontlar.SMALL_BOLD,
+            text_color=Renkler.TEXT_GRAY
+        )
+        self.rates_lbl.pack(padx=12, pady=6)
 
         # ── 1. SATIR: 5'Lİ ÜST KPI KARTLARI ───────────────────────────────────
         self.kpi_frame = ctk.CTkFrame(self.scroll_container, fg_color="transparent")
@@ -527,3 +551,55 @@ class DashboardScreen(ctk.CTkFrame):
                 self.after(80, lambda: self.canvas_line.draw())
             except Exception:
                 pass
+
+    def start_rates_fetching(self):
+        t = threading.Thread(target=self.fetch_rates_async, daemon=True)
+        t.start()
+
+    def fetch_rates_async(self):
+        url = "https://www.tcmb.gov.tr/kurlar/today.xml"
+        req = urllib.request.Request(
+            url, 
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = response.read()
+                root = ET.fromstring(data)
+                usd_val = None
+                eur_val = None
+                for currency in root.findall('Currency'):
+                    code = currency.get('CurrencyCode')
+                    if code == 'USD':
+                        usd_val = currency.find('ForexBuying').text
+                    elif code == 'EUR':
+                        eur_val = currency.find('ForexBuying').text
+                
+                if usd_val and eur_val:
+                    self.usd_rate = f"{float(usd_val):.2f}"
+                    self.eur_rate = f"{float(eur_val):.2f}"
+                    self.rates_status = "success"
+                else:
+                    self.rates_status = "error"
+        except Exception:
+            self.rates_status = "error"
+        
+        try:
+            self.after(0, self.update_rates_ui)
+        except Exception:
+            pass
+
+    def update_rates_ui(self):
+        if not hasattr(self, "rates_lbl") or not self.rates_lbl.winfo_exists():
+            return
+        
+        if self.rates_status == "success":
+            self.rates_lbl.configure(
+                text=f"USD: {self.usd_rate} ₺  |  EUR: {self.eur_rate} ₺",
+                text_color=Renkler.TEXT_DARK
+            )
+        elif self.rates_status == "error":
+            self.rates_lbl.configure(
+                text="Döviz kurları alınamadı (Çevrimdışı)",
+                text_color=Renkler.ERROR
+            )
