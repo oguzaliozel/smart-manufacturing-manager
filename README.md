@@ -6,7 +6,7 @@
     <br />
     <a href="https://github.com/oguzaliozel/smart-manufacturing-manager"><strong>Repo Sayfası</strong></a>
     ·
-    <a href="mailto:oguzaliozel@gmail.com"><strong>Destek Al</strong></a>
+    <a href="mailto:oguzaliozel@gmail.com"><strong>İletişim</strong></a>
   </p>
 </div>
 
@@ -14,20 +14,41 @@
 
 ### 📌 Proje Hakkında (About The Project)
 
-**Smart Manufacturing Manager**, imalat süreçlerindeki malzeme, makine ve operasyonel maliyetleri hesaplamanın ötesine geçerek; üretimdeki fire oranlarını ve hurda değerlerini analiz eden, atölyede kalacak gizli kazancı (hurda kârı) ortaya çıkararak teklifleri en kârlı şekilde sunmanızı sağlayan modern bir masaüstü yazılımıdır.
+**Smart Manufacturing Manager**, imalat süreçlerindeki malzeme, makine ve operasyonel maliyetleri hesaplamanın ötesine geçerek; üretimdeki fire oranlarını ve hurda değerlerini analiz eden, atölyede kalacak gizli kazancı (hurda kârı) ortaya çıkararak teklifleri en kârlı şekilde sunmanızı sağlayan modern bir masaüstü yazılımıdır. 
 
-*   🎨 **Çift Tema Desteği:** Sistem veya kullanıcı ayarlarına göre anlık Açık/Koyu mod geçişi.
-*   💱 **Canlı TCMB Döviz Widget'ı:** Arayüzü dondurmayan asenkron thread mimarisi ile canlı kur takibi.
-*   📈 **Dinamik Grafikler:** Temayla uyumlu Matplotlib donut ve çizgi grafik analiz panelleri.
-*   📄 **Profesyonel Raporlama:** Excel (openpyxl) ve Türkçe karakter destekli PDF (ReportLab) döküm motorları.
-*   🔐 **Güvenli Erişim:** Kullanıcı şifrelerinin SHA-256 hash algoritmasıyla özetlenerek saklanması.
+Bu proje, bir atölyenin teklif hazırlamaktan üretime, sevkiyat takibinden dönemsel raporlamaya kadar olan tüm iş akışını tek bir merkezden yönetir.
 
-### 🛠️ Kullanılan Teknolojiler (Built With)
+---
 
-*   **GUI:** Python & [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)
-*   **Database:** [SQLite](https://www.sqlite.org/) (ACID uyumlu ilişkisel db)
-*   **Visuals:** [Matplotlib](https://matplotlib.org/) & [Pillow](https://python-pillow.org/)
-*   **Exporters:** [ReportLab](https://www.reportlab.com/) (PDF) & [openpyxl](https://openpyxl.readthedocs.io/) (Excel)
+### 🚀 Öne Çıkan Özellikler (Core Features)
+
+*   🎨 **Çift Tema Desteği & Dinamik GUI:** Sistem veya kullanıcı ayarlarına göre anlık Açık/Koyu mod geçişi. CustomTkinter tabanlı modern ve kurumsal arayüz.
+*   💱 **Asenkron Kur Takibi (TCMB API):** Arayüzü dondurmayan asenkron thread mimarisi ile canlı USD/EUR kur takibi ve internet kesintilerinde çevrimdışı hata yönetimi (`Graceful Degradation`).
+*   📈 **Dinamik Grafik Analizleri:** Temayla uyumlu, Matplotlib tabanlı donut (durum dağılımı) ve çizgi (ciro/kar takibi) grafik panelleri.
+*   📄 **Profesyonel PDF & Excel Aktarımı:** Türkçe karakter destekli PDF (ReportLab) dökümleri ve çok sekmeli muhasebe formatlı Excel (openpyxl) raporlama modülleri.
+*   🔐 **Güvenli Kimlik Doğrulama:** Kullanıcı şifrelerinin veritabanında **SHA-256** hash özetleriyle saklanması ve JSON tabanlı yerel tercih yöneticisi.
+
+---
+
+### 📊 Sistem Mimarisi & Veri Akışı (Architecture & Data Flow)
+
+Uygulama, veritabanından çekilen dinamik verileri eş zamanlı olarak arayüz bileşenlerine ve dışa aktarım motorlarına dağıtan modüler bir veri akışına sahiptir.
+
+```mermaid
+graph TD
+    A[Kullanıcı Girişi / Filtreler] --> B[Dinamik SQL Sorguları]
+    B --> C[SQLite Veritabanı]
+    C --> D[KPI Özet Kartları]
+    C --> E[Matplotlib Grafik Motoru]
+    C --> F[Rapor Detay Tabloları]
+    D & E & F --> G[Ortak Bellek Alanı]
+    G --> H[PDF Rapor Motoru - ReportLab]
+    G --> I[Excel Rapor Motoru - openpyxl]
+```
+
+#### 🗄️ Veritabanı İlişkileri (Database Schema)
+*   **Teklif ve Kalem İlişkisi:** `teklifler` ve `teklif_kalemleri` tabloları arasında **Bire-Çok (1-to-Many)** ilişki kurgulanmıştır.
+*   **Veri Tutarlılığı:** Yabancı anahtar kısıtları (`FOREIGN KEY`) ve `ON DELETE CASCADE` tetikleyicisi sayesinde bir teklif silindiğinde ona ait tüm malzeme ve işlem kayıtları otomatik olarak temizlenir.
 
 ---
 
