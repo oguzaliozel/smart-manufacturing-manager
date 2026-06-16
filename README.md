@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/oguzaliozel/smart-manufacturing-manager/main/assets/logo.png?v=2" alt="Logo" width="100" height="100">
-  <h1 align="center">Smart Manufacturing Manager</h1>
+  <img src="https://raw.githubusercontent.com/oguzaliozel/smart-manufacturing-manager/main/assets/banner.png?v=1" alt="Smart Manufacturing Manager" width="800">
   <p align="center">
     Atölye Süreçleri için Akıllı Maliyet Hesaplama, Geri Kazanım ve Kar Takip ERP Platformu
     <br />
