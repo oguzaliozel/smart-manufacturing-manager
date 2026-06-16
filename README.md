@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/oguzaliozel/smart-manufacturing-manager/main/assets/logo.png" alt="Logo" width="100" height="100">
+  <img src="https://raw.githubusercontent.com/oguzaliozel/smart-manufacturing-manager/main/assets/logo.png?v=2" alt="Logo" width="100" height="100">
   <h1 align="center">Smart Manufacturing Manager</h1>
   <p align="center">
     Atölye Süreçleri için Akıllı Maliyet Hesaplama, Geri Kazanım ve Kar Takip ERP Platformu
@@ -25,6 +25,7 @@ Bu proje, bir atölyenin teklif hazırlamaktan üretime, sevkiyat takibinden dö
 *   **Matplotlib:** Arayüze entegre gerçek zamanlı grafik analiz motoru.
 *   **ReportLab:** Türkçe karakter uyumlu profesyonel PDF raporlayıcı.
 *   **openpyxl:** Çok sekmeli ve biçimlendirilmiş Excel veri aktarımı.
+*   **hashlib:** Kullanıcı kimlik doğrulaması için SHA-256 kriptografik güvenlik katmanı.
 
 ---
 
